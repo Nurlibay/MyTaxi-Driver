@@ -8,4 +8,12 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="color_green">#00CA4C</color>
+
+    <color name="mapboxWhite">#FFFFFF</color>
+
+    <color name="mapboxGreenDark">#269561</color>
+    <color name="mapboxGreen">#33c377</color>
+    <color name="mapboxGreenLight">#afdec5</color>
+    <color name="mapboxGreenFaint">#e8f5ee</color>
+
 </resources>
