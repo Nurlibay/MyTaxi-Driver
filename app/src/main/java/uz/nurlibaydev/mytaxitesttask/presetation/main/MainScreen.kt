@@ -1,17 +1,16 @@
 package uz.nurlibaydev.mytaxitesttask.presetation.main
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,7 +18,6 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import com.mapbox.android.core.location.*
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraPosition
@@ -42,7 +40,6 @@ import uz.nurlibaydev.mytaxitesttask.databinding.ScreenMainBinding
 import uz.nurlibaydev.mytaxitesttask.service.LocationService
 import uz.nurlibaydev.mytaxitesttask.utils.*
 
-
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
  */
@@ -59,29 +56,18 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.screen_main, container, false)
-        mapView = view.findViewById(R.id.mapView)
-        mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync(this)
-        return view
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        if (!isLocationEnabled()) {
-            showAlert()
-        }
-        startService()
+        mapView = binding.mapView
+        mapView.onCreate(savedInstanceState)
+        mapView.getMapAsync(this)
+        if (isLocationEnabled()) locationRequest()
+        else showAlert()
     }
 
     private fun startService() {
-        if (isLocationEnabled() && hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            val intent = Intent(requireContext(), LocationService::class.java)
-            ContextCompat.startForegroundService(requireContext(), intent)
-            viewModel.getAllLocations()
-        }
+        val intent = Intent(requireContext(), LocationService::class.java)
+        ContextCompat.startForegroundService(requireContext(), intent)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -97,7 +83,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             val customLocationComponentOptions = LocationComponentOptions.builder(requireContext())
@@ -116,9 +101,18 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
             mapboxMap.locationComponent.apply {
                 activateLocationComponent(locationComponentActivationOptions)
-                isLocationComponentEnabled = true
-                cameraMode = CameraMode.TRACKING
-                renderMode = RenderMode.COMPASS
+                if (ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        requireContext(),
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    isLocationComponentEnabled = true
+                    cameraMode = CameraMode.TRACKING
+                    renderMode = RenderMode.COMPASS
+                }
             }
         }
     }
@@ -146,6 +140,14 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
         }.launchIn(lifecycleScope)
     }
+
+    private fun locationRequest() {
+        if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            startService()
+            viewModel.getAllLocations()
+        } else requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
 
     private fun permissionApprovedSnackBar() {
         Snackbar.make(binding.root, R.string.permission_approved_explanation, BaseTransientBottomBar.LENGTH_LONG).show()

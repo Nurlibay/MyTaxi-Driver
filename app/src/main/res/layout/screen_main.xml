@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    android:layout_height="match_parent">
 
     <com.mapbox.mapboxsdk.maps.MapView
-        android:id="@+id/mapView"
+        android:id="@+id/map_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-         />
+        android:layout_height="match_parent" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_menu"
@@ -18,34 +15,36 @@
         android:layout_height="40dp"
         android:layout_marginStart="12dp"
         android:layout_marginTop="32dp"
+        android:background="@drawable/btn_ripple"
         android:backgroundTint="@color/white"
         android:insetLeft="0dp"
         android:insetTop="0dp"
         android:insetRight="0dp"
         android:insetBottom="0dp"
         android:padding="0dp"
+        app:backgroundTint="@color/white"
         app:cornerRadius="20dp"
         app:icon="@drawable/ic_menu"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
         app:iconTint="@color/black"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
-        />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_notif"
+        android:id="@+id/btn_notification"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="12dp"
+        android:background="@drawable/btn_ripple"
         android:backgroundTint="@color/white"
         android:insetLeft="0dp"
         android:insetTop="0dp"
         android:insetRight="0dp"
         android:insetBottom="0dp"
         android:padding="0dp"
+        app:backgroundTint="@color/white"
         app:cornerRadius="20dp"
         app:icon="@drawable/ic_notification"
         app:iconGravity="textStart"
@@ -53,15 +52,24 @@
         app:iconTint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
-        />
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-6dp"
+        android:layout_marginEnd="-6dp"
+        android:elevation="4dp"
+        android:src="@drawable/counter"
+        app:layout_constraintEnd_toEndOf="@id/btn_notification"
+        app:layout_constraintTop_toTopOf="@id/btn_notification" />
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        app:cardCornerRadius="12dp"
+        app:cardCornerRadius="@dimen/margin_middle"
         app:layout_constraintBottom_toBottomOf="@id/btn_menu"
-        app:layout_constraintEnd_toStartOf="@id/btn_notif"
+        app:layout_constraintEnd_toStartOf="@id/btn_notification"
         app:layout_constraintStart_toEndOf="@id/btn_menu"
         app:layout_constraintTop_toTopOf="@id/btn_menu">
 
@@ -106,37 +114,41 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginTop="32dp"
+        android:background="@drawable/btn_ripple"
         android:backgroundTint="@color/white"
         android:insetLeft="0dp"
         android:insetTop="0dp"
         android:insetRight="0dp"
         android:insetBottom="0dp"
         android:padding="0dp"
+        app:backgroundTint="@color/white"
         app:cornerRadius="20dp"
         app:icon="@drawable/ic_flash"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
-        app:iconTint="#3D50DF"
+        app:iconTint="@color/tint_color_flash_icon"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@id/btn_menu"
         app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
-        />
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/btn_zoom_in"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/btn_zoomin"
-        app:layout_constraintEnd_toEndOf="@id/btn_notif"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:src="@drawable/btn_zoom_in"
+        app:layout_constraintEnd_toEndOf="@id/btn_notification"
         app:layout_constraintTop_toBottomOf="@id/btn_flash" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/btn_zoom_out"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/btn_zoomout"
-        app:layout_constraintEnd_toEndOf="@id/btn_notif"
+        android:src="@drawable/btn_zoom_out"
+        app:layout_constraintEnd_toEndOf="@id/btn_notification"
         app:layout_constraintTop_toBottomOf="@id/btn_zoom_in" />
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -144,13 +156,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/btn_my_location_normal"
-        app:layout_constraintEnd_toEndOf="@id/btn_notif"
+        app:layout_constraintEnd_toEndOf="@id/btn_notification"
         app:layout_constraintTop_toBottomOf="@id/btn_zoom_out" />
 
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="84dp"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="12dp"
         android:orientation="horizontal"
@@ -158,7 +170,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -169,33 +181,49 @@
                 android:id="@+id/btn_order"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
-                android:backgroundTint="#2F2F2F"
+                android:background="@drawable/buttons_bg"
+                android:gravity="center"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
-                android:padding="0dp"
-                app:cornerRadius="28dp"
+                app:backgroundTint="@null"
                 app:icon="@drawable/ic_exchange"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconTint="@color/white"
+                app:layout_constraintBottom_toTopOf="@id/tv_orders"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
-                />
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-6dp"
+                android:layout_marginEnd="-6dp"
+                android:elevation="8dp"
+                android:src="@drawable/counter"
+                app:layout_constraintEnd_toEndOf="@id/btn_order"
+                app:layout_constraintTop_toTopOf="@id/btn_order" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_orders"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="4dp"
+                android:layout_marginTop="@dimen/margin_middle"
                 android:gravity="center"
                 android:text="@string/orders"
-                android:textColor="#1E1E1E" />
+                android:textColor="@color/color_tv_orders"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -206,33 +234,40 @@
                 android:id="@+id/btn_rocket"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
-                android:backgroundTint="#2F2F2F"
+                android:background="@drawable/buttons_bg"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                app:backgroundTint="@null"
                 app:cornerRadius="28dp"
                 app:icon="@drawable/ic_rocket"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconTint="@color/white"
+                app:layout_constraintBottom_toTopOf="@id/tv_borders"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
-                />
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="match_parent"
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_borders"
+                android:layout_width="104dp"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="4dp"
+                android:layout_marginTop="@dimen/margin_middle"
                 android:gravity="center"
                 android:text="@string/border"
-                android:textColor="#1E1E1E" />
+                android:textColor="@color/color_tv_border"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -240,34 +275,41 @@
             android:orientation="vertical">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_tarif"
+                android:id="@+id/btn_rates"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
-                android:backgroundTint="#2F2F2F"
+                android:background="@drawable/buttons_bg"
                 android:insetLeft="0dp"
                 android:insetTop="0dp"
                 android:insetRight="0dp"
                 android:insetBottom="0dp"
                 android:padding="0dp"
+                app:backgroundTint="@null"
                 app:cornerRadius="28dp"
-                app:icon="@drawable/ic_tarif"
+                app:icon="@drawable/ic_rates"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 app:iconTint="@color/white"
+                app:layout_constraintBottom_toTopOf="@id/tv_rates"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
-                />
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_rates"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="4dp"
+                android:layout_marginTop="@dimen/margin_middle"
                 android:gravity="center"
-                android:text="@string/tarif"
-                android:textColor="#1E1E1E" />
+                android:text="@string/rates"
+                android:textColor="@color/color_tv_rates"
+                android:textSize="14sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

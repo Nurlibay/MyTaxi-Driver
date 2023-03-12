@@ -15,9 +15,13 @@ import uz.nurlibaydev.mytaxitesttask.R
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
+        instance = this@App
+        Mapbox.getInstance(instance, getString(R.string.mapbox_access_token))
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+    }
+    companion object {
+        lateinit var instance: App
     }
 }

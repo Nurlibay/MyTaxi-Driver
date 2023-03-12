@@ -16,20 +16,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 
 fun Fragment.isLocationEnabled(): Boolean {
-    val locationManager =
-        requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
     return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(
         LocationManager.NETWORK_PROVIDER
     )
 }
 
-fun Context.toast(text: String, duration: Int = Toast.LENGTH_SHORT) =
-    Toast.makeText(this, text, duration).show()
-
-fun Fragment.toast(text: String, duration: Int = Toast.LENGTH_SHORT) {
-    if (context != null) {
-        context!!.toast(text, duration)
-    }
+fun Fragment.showMessage(text: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(requireContext(), text, duration).show()
 }
 
 fun Fragment.getColorRes(colorRes: Int): Int = ContextCompat.getColor(requireContext(), colorRes)

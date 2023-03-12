@@ -15,5 +15,13 @@
     <color name="mapboxGreen">#33c377</color>
     <color name="mapboxGreenLight">#afdec5</color>
     <color name="mapboxGreenFaint">#e8f5ee</color>
+    <color name="ripple_effect_color">#3D000000</color>
+    <color name="tint_color_flash_icon">#3D50DF</color>
+    <color name="color_tv_rates">#1E1E1E</color>
+    <color name="color_tv_border">#1E1E1E</color>
+    <color name="color_tv_orders">#1E1E1E</color>
+    <color name="color_gradient_start">#292929</color>
+    <color name="color_gradient_center">#3B3B3B</color>
+    <color name="color_gradient_end">#474747</color>
 
 </resources>
