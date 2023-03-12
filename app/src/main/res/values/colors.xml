@@ -23,5 +23,6 @@
     <color name="color_gradient_start">#292929</color>
     <color name="color_gradient_center">#3B3B3B</color>
     <color name="color_gradient_end">#474747</color>
+    <color name="color_icon_tint">#2C2C2C</color>
 
 </resources>

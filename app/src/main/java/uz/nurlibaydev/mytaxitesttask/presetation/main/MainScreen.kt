@@ -61,8 +61,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
-        if (isLocationEnabled()) locationRequest()
-        else showAlert()
     }
 
     private fun startService() {
@@ -119,6 +117,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun observe() {
         viewModel.allUserLocations.onEach {
+            if(it.isEmpty()) return@onEach
             val lastItem = it.last()
             val lastLocation = LatLng(lastItem.lat, lastItem.lng)
             val markerOptions = MarkerOptions().apply {
@@ -172,7 +171,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             BuildConfig.APPLICATION_ID, null
         )
         intent.data = uri
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
     }
 
@@ -197,6 +196,8 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         mapView.onResume()
+        if (isLocationEnabled()) locationRequest()
+        else showAlert()
     }
 
     override fun onPause() {
@@ -216,7 +217,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     override fun onDestroy() {
         super.onDestroy()
-        requireActivity().stopService(Intent(requireContext(), LocationService::class.java))
         mapView.onDestroy()
     }
 

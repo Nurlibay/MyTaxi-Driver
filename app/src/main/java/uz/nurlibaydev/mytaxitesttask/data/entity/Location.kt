@@ -17,5 +17,6 @@ data class Location(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
     val lat: Double,
-    val lng: Double
+    val lng: Double,
+    val time: String
 ) : Parcelable

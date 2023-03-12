@@ -2,6 +2,7 @@ package uz.nurlibaydev.mytaxitesttask.service
 
 import android.annotation.SuppressLint
 import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
@@ -18,8 +19,13 @@ import uz.nurlibaydev.mytaxitesttask.R
 import uz.nurlibaydev.mytaxitesttask.data.dao.LocationDao
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location
 import uz.nurlibaydev.mytaxitesttask.presetation.MainActivity
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.CHANNEL_ID
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.CHANNEL_NAME
 import uz.nurlibaydev.mytaxitesttask.utils.Constants.DEFAULT_INTERVAL_IN_MILLISECONDS
 import uz.nurlibaydev.mytaxitesttask.utils.Constants.DEFAULT_MAX_WAIT_TIME
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.NOTIFICATION_ID
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.TAG
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -40,7 +46,7 @@ class LocationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createChannel()
+        createNotificationChannel()
         locationEngine = LocationEngineProvider.getBestLocationEngine(this)
 
         val resultIntent = Intent(this, MainActivity::class.java)
@@ -58,14 +64,10 @@ class LocationService : Service() {
             .setOngoing(true)
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
-        startForeground(NOTIFICATION_ID, builder.build())
-
-        startForeground(NOTIFICATION_ID, builder.build())
     }
 
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
         callback = object : LocationEngineCallback<LocationEngineResult> {
             override fun onSuccess(result: LocationEngineResult?) {
                 result?.lastLocation ?: return
@@ -73,11 +75,15 @@ class LocationService : Service() {
                     val lat = result.lastLocation?.latitude!!
                     val lng = result.lastLocation?.longitude!!
                     scope.launch(Dispatchers.IO) {
-                        locationDao.addLocation(Location(0, lat, lng))
+                        val currentTime: Date = Calendar.getInstance().time
+                        locationDao.addLocation(Location(0, lat, lng, currentTime.toString()))
+                        val updatedNotification = builder.setContentText(
+                            "Location: ($lat, $lng)"
+                        )
+                        notificationManager.notify(NOTIFICATION_ID, updatedNotification.build())
                     }
                 }
             }
-
             override fun onFailure(e: Exception) {
                 Timber.tag(TAG).d(e.localizedMessage?.toString())
             }
@@ -95,31 +101,25 @@ class LocationService : Service() {
             Looper.getMainLooper()
         )
         locationEngine.getLastLocation(callback)
-
+        startForeground(NOTIFICATION_ID, builder.build())
         return START_STICKY
     }
 
-    private fun createChannel() {
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(
+            val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_DEFAULT
             )
-            notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(notificationChannel)
+            notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Timber.tag("oldi_servis").d("exxxxxxxxxxxxxxxxeeeeeeeeeee")
         job.cancel()
-    }
-
-    companion object {
-        private const val CHANNEL_ID = "service_channel"
-        private const val NOTIFICATION_ID = 7
-        private const val CHANNEL_NAME = "Location"
-        private const val TAG = "shtoti_ne_tak"
     }
 }
