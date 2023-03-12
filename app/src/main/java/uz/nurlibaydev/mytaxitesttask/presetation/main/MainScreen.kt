@@ -10,7 +10,6 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.BounceInterpolator
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
@@ -21,7 +20,6 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mapbox.android.core.location.*
-import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraPosition
@@ -44,6 +42,7 @@ import uz.nurlibaydev.mytaxitesttask.databinding.ScreenMainBinding
 import uz.nurlibaydev.mytaxitesttask.service.LocationService
 import uz.nurlibaydev.mytaxitesttask.utils.*
 
+
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
  */
@@ -61,7 +60,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Mapbox.getInstance(requireContext(), getString(R.string.mapbox_access_token))
         val view = inflater.inflate(R.layout.screen_main, container, false)
         mapView = view.findViewById(R.id.mapView)
         mapView.onCreate(savedInstanceState)
@@ -78,8 +76,8 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         startService()
     }
 
-    private fun startService(){
-        if(isLocationEnabled() && hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+    private fun startService() {
+        if (isLocationEnabled() && hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             val intent = Intent(requireContext(), LocationService::class.java)
             ContextCompat.startForegroundService(requireContext(), intent)
             viewModel.getAllLocations()
@@ -89,8 +87,13 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
         observe()
-        mapboxMap.setStyle(Style.MAPBOX_STREETS) {
-            enableLocationComponent(it)
+        mapboxMap.setStyle(
+            Style.MAPBOX_STREETS
+        ) { style ->
+            mapboxMap.uiSettings.isCompassEnabled = false
+            mapboxMap.uiSettings.isLogoEnabled = false
+            mapboxMap.uiSettings.isAttributionEnabled = false
+            enableLocationComponent(style)
         }
     }
 
@@ -98,10 +101,12 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private fun enableLocationComponent(loadedMapStyle: Style) {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             val customLocationComponentOptions = LocationComponentOptions.builder(requireContext())
+                .elevation(5f)
                 .pulseEnabled(true)
                 .pulseColor(Color.GREEN)
                 .pulseAlpha(.4f)
                 .trackingGesturesManagement(true)
+                .accuracyAlpha(.6f)
                 .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
                 .build()
 
