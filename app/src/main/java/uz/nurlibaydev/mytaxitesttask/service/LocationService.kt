@@ -62,6 +62,7 @@ class LocationService : Service() {
             .setContentText("Location Value")
             .setSmallIcon(R.drawable.ic_location)
             .setOngoing(true)
+            .setSilent(true)
 
         notificationManager.notify(NOTIFICATION_ID, builder.build())
     }

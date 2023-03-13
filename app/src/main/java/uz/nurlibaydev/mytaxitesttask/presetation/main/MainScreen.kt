@@ -1,10 +1,10 @@
 package uz.nurlibaydev.mytaxitesttask.presetation.main
 
 import android.Manifest
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -46,7 +46,6 @@ import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
 import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
 import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
 
-
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
  */
@@ -71,6 +70,43 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
+        zoomInAction()
+        zoomOutAction()
+        navigateMyLocationAction()
+    }
+
+    private fun zoomInAction() {
+        binding.btnZoomIn.setOnClickListener {
+            val cameraPosition = mapboxMap.cameraPosition
+            val newCameraPosition = CameraPosition.Builder(cameraPosition)
+                .zoom(cameraPosition.zoom + 1.0)
+                .build()
+            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
+        }
+    }
+
+    private fun zoomOutAction() {
+        binding.btnZoomOut.setOnClickListener {
+            val cameraPosition = mapboxMap.cameraPosition
+            val newCameraPosition = CameraPosition.Builder(cameraPosition)
+                .zoom(cameraPosition.zoom - 1.0)
+                .build()
+            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
+        }
+    }
+
+    private fun navigateMyLocationAction() {
+        binding.btnMyLocation.setOnClickListener {
+            val locationComponent = mapboxMap.locationComponent
+            val lastLocation: Location? = locationComponent.lastKnownLocation
+            if (lastLocation != null) {
+                val cameraPosition = CameraPosition.Builder()
+                    .target(LatLng(lastLocation))
+                    .zoom(15.0)
+                    .build()
+                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
+            }
+        }
     }
 
     private fun startService() {
@@ -101,8 +137,15 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun enableLocationComponent(loadedMapStyle: Style) {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            val customLocationComponentOptions = LocationComponentOptions.builder(requireContext()).elevation(5f).pulseEnabled(true).pulseColor(Color.GREEN).pulseAlpha(.4f)
-                    .trackingGesturesManagement(true).accuracyAlpha(.6f).accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
+            val customLocationComponentOptions =
+                LocationComponentOptions.builder(requireContext())
+                    .elevation(5f)
+                    .pulseEnabled(true)
+                    .pulseColor(Color.GREEN)
+                    .pulseAlpha(.4f)
+                    .trackingGesturesManagement(true)
+                    .accuracyAlpha(.6f)
+                    .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
                     .build()
 
             val locationComponentActivationOptions = LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
@@ -129,7 +172,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             if (locations.isEmpty()) return@onEach
             val lastItem = locations.last()
             val lastLocation = LatLng(lastItem.lat, lastItem.lng)
-            val position = CameraPosition.Builder().target(lastLocation).zoom(12.0).tilt(45.0).bearing(180.0).build()
+            val position = CameraPosition.Builder().target(lastLocation).zoom(15.0).tilt(45.0).bearing(180.0).build()
             mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 3000)
             currentPosition = LatLng(lastLocation.latitude, lastLocation.longitude)
             icon.apply {
