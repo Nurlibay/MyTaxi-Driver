@@ -58,7 +58,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private lateinit var mapboxMap: MapboxMap
     private val viewModel: MainViewModel by viewModels<MainViewModelImpl>()
     private lateinit var symbolManager: SymbolManager
-    private lateinit var currentPosition: LatLng
+    private lateinit var currentLocation: LatLng
     private lateinit var icon: Symbol
 
     private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -98,13 +98,15 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private fun navigateMyLocationAction() {
         binding.btnMyLocation.setOnClickListener {
             val locationComponent = mapboxMap.locationComponent
-            val lastLocation: Location? = locationComponent.lastKnownLocation
-            if (lastLocation != null) {
-                val cameraPosition = CameraPosition.Builder()
-                    .target(LatLng(lastLocation))
-                    .zoom(15.0)
-                    .build()
-                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
+            if(locationComponent.isLocationComponentActivated) {
+                val lastLocation: Location? = locationComponent.lastKnownLocation
+                lastLocation.let {
+                    val cameraPosition = CameraPosition.Builder()
+                        .target(LatLng(lastLocation))
+                        .zoom(15.0)
+                        .build()
+                    mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
+                }
             }
         }
     }
@@ -130,7 +132,10 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             symbolManager.iconAllowOverlap = true
             symbolManager.iconIgnorePlacement = true
             icon = symbolManager.create(
-                SymbolOptions().withLatLng(TASHKENT).withIconImage("MARKER_ICON").withDraggable(false)
+                SymbolOptions()
+                    .withLatLng(TASHKENT)
+                    .withIconImage("MARKER_ICON")
+                    .withDraggable(false)
             )
         }
     }
@@ -143,6 +148,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
                     .pulseEnabled(true)
                     .pulseColor(Color.GREEN)
                     .pulseAlpha(.4f)
+                    .accuracyAnimationEnabled(true)
                     .trackingGesturesManagement(true)
                     .accuracyAlpha(.6f)
                     .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
@@ -174,9 +180,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             val lastLocation = LatLng(lastItem.lat, lastItem.lng)
             val position = CameraPosition.Builder().target(lastLocation).zoom(15.0).tilt(45.0).bearing(180.0).build()
             mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 3000)
-            currentPosition = LatLng(lastLocation.latitude, lastLocation.longitude)
+            currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
             icon.apply {
-                this.latLng = currentPosition
+                this.latLng = currentLocation
                 symbolManager.update(this)
             }
         }.launchIn(viewLifecycleOwner.lifecycleScope)

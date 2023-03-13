@@ -56,11 +56,11 @@ class LocationService : Service() {
 
         val pendingIntent = stackBuilder.getPendingIntent(1, PendingIntent.FLAG_MUTABLE)
 
-        // Create the notification
         builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Location Service")
             .setContentText("Location Value")
             .setSmallIcon(R.drawable.ic_location)
+            .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setSilent(true)
 
@@ -85,6 +85,7 @@ class LocationService : Service() {
                     }
                 }
             }
+
             override fun onFailure(e: Exception) {
                 Timber.tag(TAG).d(e.localizedMessage?.toString())
             }
@@ -120,7 +121,6 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Timber.tag("oldi_servis").d("exxxxxxxxxxxxxxxxeeeeeeeeeee")
         job.cancel()
     }
 }
