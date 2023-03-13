@@ -1,6 +1,7 @@
 package uz.nurlibaydev.mytaxitesttask.presetation.main
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -12,14 +13,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import com.mapbox.mapboxsdk.annotations.IconFactory
-import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -31,6 +31,10 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.plugins.annotation.Symbol
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.utils.BitmapUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -38,7 +42,10 @@ import uz.nurlibaydev.mytaxitesttask.BuildConfig
 import uz.nurlibaydev.mytaxitesttask.R
 import uz.nurlibaydev.mytaxitesttask.databinding.ScreenMainBinding
 import uz.nurlibaydev.mytaxitesttask.service.LocationService
-import uz.nurlibaydev.mytaxitesttask.utils.*
+import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
+import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
+import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
+
 
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
@@ -51,6 +58,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private lateinit var mapView: MapView
     private lateinit var mapboxMap: MapboxMap
     private val viewModel: MainViewModel by viewModels<MainViewModelImpl>()
+    private lateinit var symbolManager: SymbolManager
+    private lateinit var currentPosition: LatLng
+    private lateinit var icon: Symbol
 
     private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
@@ -78,33 +88,32 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             mapboxMap.uiSettings.isLogoEnabled = false
             mapboxMap.uiSettings.isAttributionEnabled = false
             enableLocationComponent(style)
+            val selectedMarkerIconDrawable = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_car, null)
+            style.addImage("MARKER_ICON", BitmapUtils.getBitmapFromDrawable(selectedMarkerIconDrawable)!!)
+            symbolManager = SymbolManager(mapView, mapboxMap, style)
+            symbolManager.iconAllowOverlap = true
+            symbolManager.iconIgnorePlacement = true
+            icon = symbolManager.create(
+                SymbolOptions().withLatLng(TASHKENT).withIconImage("MARKER_ICON").withDraggable(false)
+            )
         }
     }
 
     private fun enableLocationComponent(loadedMapStyle: Style) {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            val customLocationComponentOptions = LocationComponentOptions.builder(requireContext())
-                .elevation(5f)
-                .pulseEnabled(true)
-                .pulseColor(Color.GREEN)
-                .pulseAlpha(.4f)
-                .trackingGesturesManagement(true)
-                .accuracyAlpha(.6f)
-                .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
-                .build()
+            val customLocationComponentOptions = LocationComponentOptions.builder(requireContext()).elevation(5f).pulseEnabled(true).pulseColor(Color.GREEN).pulseAlpha(.4f)
+                    .trackingGesturesManagement(true).accuracyAlpha(.6f).accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
+                    .build()
 
-            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle)
-                .locationComponentOptions(customLocationComponentOptions)
-                .build()
+            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
+                    .build()
 
             mapboxMap.locationComponent.apply {
                 activateLocationComponent(locationComponentActivationOptions)
                 if (ActivityCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION
+                        requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_COARSE_LOCATION
+                        requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
                     isLocationComponentEnabled = true
@@ -116,28 +125,18 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     }
 
     private fun observe() {
-        viewModel.allUserLocations.onEach {
-            if(it.isEmpty()) return@onEach
-            val lastItem = it.last()
+        viewModel.allUserLocations.onEach { locations ->
+            if (locations.isEmpty()) return@onEach
+            val lastItem = locations.last()
             val lastLocation = LatLng(lastItem.lat, lastItem.lng)
-            val markerOptions = MarkerOptions().apply {
-                position = lastLocation
-                icon = IconFactory.getInstance(requireContext())
-                    .fromBitmap(bitmapFromDrawableRes(R.drawable.ic_car)!!)
-                snippet("Nukus")
-            }
-
-            val position = CameraPosition.Builder()
-                .target(lastLocation)
-                .zoom(12.0)
-                .tilt(45.0)
-                .bearing(180.0)
-                .build()
-
+            val position = CameraPosition.Builder().target(lastLocation).zoom(12.0).tilt(45.0).bearing(180.0).build()
             mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 3000)
-            mapboxMap.addMarker(markerOptions)
-
-        }.launchIn(lifecycleScope)
+            currentPosition = LatLng(lastLocation.latitude, lastLocation.longitude)
+            icon.apply {
+                this.latLng = currentPosition
+                symbolManager.update(this)
+            }
+        }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun locationRequest() {
@@ -147,28 +146,21 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         } else requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
-
     private fun permissionApprovedSnackBar() {
         Snackbar.make(binding.root, R.string.permission_approved_explanation, BaseTransientBottomBar.LENGTH_LONG).show()
     }
 
     private fun permissionDeniedSnackBar() {
         Snackbar.make(
-            binding.root,
-            R.string.fine_permission_denied_explanation,
-            BaseTransientBottomBar.LENGTH_LONG
-        )
-            .setAction(R.string.settings) { launchSettings() }
-            .setActionTextColor(getColorRes(R.color.white))
-            .show()
+            binding.root, R.string.fine_permission_denied_explanation, BaseTransientBottomBar.LENGTH_LONG
+        ).setAction(R.string.settings) { launchSettings() }.setActionTextColor(getColorRes(R.color.white)).show()
     }
 
     private fun launchSettings() {
         val intent = Intent()
         intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
         val uri = Uri.fromParts(
-            "package",
-            BuildConfig.APPLICATION_ID, null
+            "package", BuildConfig.APPLICATION_ID, null
         )
         intent.data = uri
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -177,14 +169,12 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun showAlert() {
         val dialog = AlertDialog.Builder(requireContext())
-        dialog.setTitle(getString(R.string.enable_location))
-            .setMessage(getString(R.string.enable_location_message))
+        dialog.setTitle(getString(R.string.enable_location)).setMessage(getString(R.string.enable_location_message))
             .setPositiveButton(getString(R.string.location_settings)) { _, _ ->
                 val myIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 myIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                 startActivity(myIntent)
-            }
-            .setNegativeButton(getString(R.string.cancel)) { _, _ -> }
+            }.setNegativeButton(getString(R.string.cancel)) { _, _ -> }
         dialog.show()
     }
 
@@ -223,5 +213,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onLowMemory() {
         super.onLowMemory()
         mapView.onLowMemory()
+    }
+
+    companion object {
+        val TASHKENT = LatLng(41.2995, 69.2401)
     }
 }
