@@ -34,6 +34,8 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
+import com.mapbox.mapboxsdk.style.layers.BackgroundLayer
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.utils.BitmapUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
@@ -98,7 +100,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private fun navigateMyLocationAction() {
         binding.btnMyLocation.setOnClickListener {
             val locationComponent = mapboxMap.locationComponent
-            if(locationComponent.isLocationComponentActivated) {
+            if (locationComponent.isLocationComponentActivated) {
                 val lastLocation: Location? = locationComponent.lastKnownLocation
                 lastLocation.let {
                     val cameraPosition = CameraPosition.Builder()
@@ -120,7 +122,13 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         this.mapboxMap = mapboxMap
         observe()
         mapboxMap.setStyle(
-            Style.MAPBOX_STREETS
+            Style.Builder()
+                .fromUri(Style.MAPBOX_STREETS)
+//                .fromUri("mapbox://styles/mapbox/dark-v11")
+//                .withLayer(
+//                    BackgroundLayer("background-layer")
+//                        .withProperties(PropertyFactory.backgroundColor(Color.BLACK))
+//                )
         ) { style ->
             mapboxMap.uiSettings.isCompassEnabled = false
             mapboxMap.uiSettings.isLogoEnabled = false
@@ -154,7 +162,8 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
                     .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
                     .build()
 
-            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
+            val locationComponentActivationOptions =
+                LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
                     .build()
 
             mapboxMap.locationComponent.apply {

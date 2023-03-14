@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_gradient_start">#777777</color>
+    <color name="color_gradient_center">#989898</color>
+    <color name="color_gradient_end">#A3A3A3</color>
+    <color name="color_icons_bg">#BEBEBE</color>
+</resources>
