@@ -1,6 +1,7 @@
 package uz.nurlibaydev.mytaxitesttask.presetation.main
 
 import android.Manifest
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -46,7 +47,8 @@ import uz.nurlibaydev.mytaxitesttask.service.LocationService
 import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
 import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
 import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
-import uz.nurlibaydev.mytaxitesttask.utils.showMessage
+import uz.nurlibaydev.mytaxitesttask.utils.latLngEvaluator
+
 
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
@@ -132,7 +134,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             mapboxMap.uiSettings.isAttributionEnabled = false
             mapboxMap.locationComponent.isLocationComponentActivated
             enableLocationComponent(style)
-            val selectedMarkerIconDrawable = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_car, null)
+            val selectedMarkerIconDrawable = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_yellow_car, null)
             style.addImage(MARKER_ICON, BitmapUtils.getBitmapFromDrawable(selectedMarkerIconDrawable)!!)
             symbolManager = SymbolManager(mapView, mapboxMap, style)
             symbolManager.iconAllowOverlap = true
@@ -150,14 +152,14 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             val customLocationComponentOptions =
                 LocationComponentOptions.builder(requireContext())
-                    .elevation(5f)
-                    .pulseEnabled(true)
-                    .pulseColor(Color.GREEN)
-                    .pulseAlpha(.4f)
-                    .accuracyAnimationEnabled(true)
-                    .trackingGesturesManagement(true)
-                    .accuracyAlpha(.6f)
-                    .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
+//                    .elevation(5f)
+//                    .pulseEnabled(true)
+//                    .pulseColor(Color.GREEN)
+//                    .pulseAlpha(.4f)
+//                    .accuracyAnimationEnabled(true)
+//                    .trackingGesturesManagement(true)
+//                    .accuracyAlpha(.6f)
+//                    .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
                     .build()
 
             val locationComponentActivationOptions =
@@ -172,7 +174,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
                         requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    showMessage("isLocationComponentEnabled = true")
                     isLocationComponentEnabled = true
                     cameraMode = CameraMode.TRACKING
                     renderMode = RenderMode.COMPASS
@@ -187,12 +188,29 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             val lastItem = locations.last()
             val lastLocation = LatLng(lastItem.lat, lastItem.lng)
             currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
-            if (::icon.isInitialized) {
-                icon.apply {
-                    this.latLng = currentLocation
-                    symbolManager.update(this)
+
+            val camera = CameraUpdateFactory.newCameraPosition(
+                CameraPosition.Builder()
+                    .target(LatLng(currentLocation.latitude, currentLocation.longitude))
+                    .bearing(lastItem.bearing.toDouble())
+                    .build()
+            )
+            mapboxMap.animateCamera(camera)
+
+            val anim = ObjectAnimator.ofObject(
+                latLngEvaluator,
+                icon.latLng,
+                LatLng(currentLocation.latitude, currentLocation.longitude)
+            ).setDuration(2000L)
+            anim.addUpdateListener {
+                icon.latLng = it.animatedValue as LatLng
+                if (::icon.isInitialized) {
+                    icon.apply {
+                        symbolManager.update(this)
+                    }
                 }
             }
+            anim.start()
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 

@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.mapbox.android.core.location.LocationEngineResult
+import com.mapbox.api.directions.v5.models.Bearing
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
@@ -18,5 +19,6 @@ data class Location(
     val id: Int,
     val lat: Double,
     val lng: Double,
-    val time: String
+    val time: String,
+    val bearing: Float
 ) : Parcelable

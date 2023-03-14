@@ -74,10 +74,10 @@ class LocationService : Service() {
                 if (result.lastLocation != null) {
                     val lat = result.lastLocation?.latitude!!
                     val lng = result.lastLocation?.longitude!!
-                    val bearing = result.lastLocation?.bearing
+                    val bearing = result.lastLocation?.bearing!!
                     scope.launch(Dispatchers.IO) {
                         val currentTime: Date = Calendar.getInstance().time
-                        locationDao.addLocation(Location(0, lat, lng, currentTime.toString()))
+                        locationDao.addLocation(Location(0, lat, lng, currentTime.toString(), bearing))
                         val updatedNotification = builder.setContentText(
                             "Location: ($lat, $lng)"
                         )
