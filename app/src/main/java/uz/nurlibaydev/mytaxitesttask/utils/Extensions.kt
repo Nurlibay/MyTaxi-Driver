@@ -21,7 +21,6 @@ fun Fragment.isLocationEnabled(): Boolean {
         LocationManager.NETWORK_PROVIDER
     )
 }
-
 fun Fragment.showMessage(text: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(requireContext(), text, duration).show()
 }

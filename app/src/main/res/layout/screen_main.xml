@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:mapbox="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <com.mapbox.mapboxsdk.maps.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
+        android:layout_height="match_parent" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_menu"
@@ -97,11 +95,11 @@
                 android:background="@color/white">
 
                 <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tv_busy"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:id="@+id/tv_busy"
                     android:background="@color/color_icons_bg"
+                    android:gravity="center"
                     android:text="@string/busy"
                     android:textColor="@color/black" />
 

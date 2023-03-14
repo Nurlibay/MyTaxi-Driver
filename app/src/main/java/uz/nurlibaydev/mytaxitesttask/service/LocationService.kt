@@ -63,7 +63,6 @@ class LocationService : Service() {
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setSilent(true)
-
         notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 
@@ -75,6 +74,7 @@ class LocationService : Service() {
                 if (result.lastLocation != null) {
                     val lat = result.lastLocation?.latitude!!
                     val lng = result.lastLocation?.longitude!!
+                    val bearing = result.lastLocation?.bearing
                     scope.launch(Dispatchers.IO) {
                         val currentTime: Date = Calendar.getInstance().time
                         locationDao.addLocation(Location(0, lat, lng, currentTime.toString()))

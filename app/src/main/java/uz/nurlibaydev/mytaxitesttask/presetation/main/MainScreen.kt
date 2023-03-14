@@ -3,6 +3,7 @@ package uz.nurlibaydev.mytaxitesttask.presetation.main
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Color
 import android.location.Location
 import android.net.Uri
@@ -34,8 +35,6 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
-import com.mapbox.mapboxsdk.style.layers.BackgroundLayer
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.utils.BitmapUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
@@ -47,6 +46,7 @@ import uz.nurlibaydev.mytaxitesttask.service.LocationService
 import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
 import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
 import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
+import uz.nurlibaydev.mytaxitesttask.utils.showMessage
 
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
@@ -75,6 +75,11 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         zoomInAction()
         zoomOutAction()
         navigateMyLocationAction()
+    }
+
+    private fun startService() {
+        val intent by lazy { Intent(requireContext(), LocationService::class.java) }
+        ContextCompat.startForegroundService(requireContext(), intent)
     }
 
     private fun zoomInAction() {
@@ -113,36 +118,29 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         }
     }
 
-    private fun startService() {
-        val intent = Intent(requireContext(), LocationService::class.java)
-        ContextCompat.startForegroundService(requireContext(), intent)
-    }
-
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
         observe()
+        val styleBuilderLight = Style.Builder().fromUri(Style.MAPBOX_STREETS)
+        val styleBuilderNight = Style.Builder().fromUri(MAP_BOX_DARK_MODE)
+        val nightModeFlags = requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         mapboxMap.setStyle(
-            Style.Builder()
-                .fromUri(Style.MAPBOX_STREETS)
-//                .fromUri("mapbox://styles/mapbox/dark-v11")
-//                .withLayer(
-//                    BackgroundLayer("background-layer")
-//                        .withProperties(PropertyFactory.backgroundColor(Color.BLACK))
-//                )
+            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) styleBuilderNight else styleBuilderLight
         ) { style ->
             mapboxMap.uiSettings.isCompassEnabled = false
             mapboxMap.uiSettings.isLogoEnabled = false
             mapboxMap.uiSettings.isAttributionEnabled = false
+            mapboxMap.locationComponent.isLocationComponentActivated
             enableLocationComponent(style)
             val selectedMarkerIconDrawable = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_car, null)
-            style.addImage("MARKER_ICON", BitmapUtils.getBitmapFromDrawable(selectedMarkerIconDrawable)!!)
+            style.addImage(MARKER_ICON, BitmapUtils.getBitmapFromDrawable(selectedMarkerIconDrawable)!!)
             symbolManager = SymbolManager(mapView, mapboxMap, style)
             symbolManager.iconAllowOverlap = true
             symbolManager.iconIgnorePlacement = true
             icon = symbolManager.create(
                 SymbolOptions()
                     .withLatLng(TASHKENT)
-                    .withIconImage("MARKER_ICON")
+                    .withIconImage(MARKER_ICON)
                     .withDraggable(false)
             )
         }
@@ -174,6 +172,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
                         requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
+                    showMessage("isLocationComponentEnabled = true")
                     isLocationComponentEnabled = true
                     cameraMode = CameraMode.TRACKING
                     renderMode = RenderMode.COMPASS
@@ -187,12 +186,12 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             if (locations.isEmpty()) return@onEach
             val lastItem = locations.last()
             val lastLocation = LatLng(lastItem.lat, lastItem.lng)
-            val position = CameraPosition.Builder().target(lastLocation).zoom(15.0).tilt(45.0).bearing(180.0).build()
-            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), 3000)
             currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
-            icon.apply {
-                this.latLng = currentLocation
-                symbolManager.update(this)
+            if (::icon.isInitialized) {
+                icon.apply {
+                    this.latLng = currentLocation
+                    symbolManager.update(this)
+                }
             }
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
@@ -274,6 +273,8 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     }
 
     companion object {
-        val TASHKENT = LatLng(41.2995, 69.2401)
+        private val TASHKENT = LatLng(41.2995, 69.2401)
+        private const val MAP_BOX_DARK_MODE = "mapbox://styles/mapbox/dark-v11"
+        private const val MARKER_ICON = "MARKER_ICON"
     }
 }
