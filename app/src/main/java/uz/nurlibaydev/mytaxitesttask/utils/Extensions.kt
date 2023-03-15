@@ -32,10 +32,12 @@ fun Fragment.getColorRes(colorRes: Int): Int = ContextCompat.getColor(requireCon
 fun Context.hasPermission(permission: String): Boolean {
     if (permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION &&
         android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q
-    ) return true
+    ) {
+        return true
+    }
 
     return ActivityCompat.checkSelfPermission(this, permission) ==
-            PackageManager.PERMISSION_GRANTED
+        PackageManager.PERMISSION_GRANTED
 }
 
 fun Fragment.hasPermission(permission: String): Boolean {
@@ -55,8 +57,9 @@ private fun convertDrawableToBitmap(sourceDrawable: Drawable?): Bitmap? {
         val constantState = sourceDrawable.constantState ?: return null
         val drawable = constantState.newDrawable().mutate()
         val bitmap: Bitmap = Bitmap.createBitmap(
-            drawable.intrinsicWidth, drawable.intrinsicHeight,
-            Bitmap.Config.ARGB_8888
+            drawable.intrinsicWidth,
+            drawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888,
         )
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)

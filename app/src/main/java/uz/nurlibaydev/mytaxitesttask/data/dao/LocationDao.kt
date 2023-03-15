@@ -1,6 +1,9 @@
 package uz.nurlibaydev.mytaxitesttask.data.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location
 
@@ -11,11 +14,8 @@ import uz.nurlibaydev.mytaxitesttask.data.entity.Location
 @Dao
 interface LocationDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addLocation(location: Location)
-
-    @Update(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun updateLocation(location: Location)
 
     @Query("SELECT * FROM location_table")
     fun getAllLocation(): Flow<List<Location>>

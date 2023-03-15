@@ -22,7 +22,9 @@ object DatabaseModule {
     @[Provides Singleton]
     fun provideDatabase(@ApplicationContext context: Context): LocalDatabase {
         return Room.databaseBuilder(
-            context, LocalDatabase::class.java, "location_data.db"
+            context,
+            LocalDatabase::class.java,
+            "location_data.db",
         )
             .build()
     }

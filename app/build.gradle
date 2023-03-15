@@ -43,7 +43,7 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -82,18 +82,12 @@ dependencies {
     kapt "androidx.room:room-compiler:2.4.3"
     implementation "androidx.room:room-ktx:2.4.3"
 
-    // material design
+    // Material design
     implementation 'com.google.android.material:material:1.8.0'
 
     // Mapbox
-//    implementation 'com.mapbox.maps:android:10.11.1'
-//    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-locationlayer:0.12.0'
     implementation "com.mapbox.mapboxsdk:mapbox-android-sdk:9.7.0"
     implementation "com.mapbox.mapboxsdk:mapbox-sdk-services:6.4.0"
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-markerview-v9:0.4.0'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9:0.9.0'
-
-//    implementation 'com.mapbox.mapboxsdk:mapbox-android-core:5.0.1'
-//    implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation:0.42.6'
-//    implementation 'com.mapbox.mapboxsdk:mapbox-android-navigation-ui:0.42.6'
 }

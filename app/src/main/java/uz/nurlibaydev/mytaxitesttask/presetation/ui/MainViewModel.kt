@@ -1,4 +1,4 @@
-package uz.nurlibaydev.mytaxitesttask.presetation.viewmodel.impl
+package uz.nurlibaydev.mytaxitesttask.presetation.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,22 +9,22 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location
 import uz.nurlibaydev.mytaxitesttask.domain.usecase.LocationUseCase
-import uz.nurlibaydev.mytaxitesttask.presetation.viewmodel.MainViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModelImpl @Inject constructor(
+class MainViewModel @Inject constructor(
     private val useCase: LocationUseCase,
-) : MainViewModel, ViewModel() {
-    override val lastLocation = MutableSharedFlow<Location>()
+) : ViewModel() {
 
-    override fun addLocation(location: Location) {
+    val lastLocation = MutableSharedFlow<Location>()
+
+    fun addLocation(location: Location) {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.addLocation(location)
         }
     }
 
-    override fun getLastLocation() {
+    fun getLastLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.getLastLocation().collectLatest {
                 lastLocation.emit(it)

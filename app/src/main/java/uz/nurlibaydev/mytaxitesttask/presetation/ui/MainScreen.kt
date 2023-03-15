@@ -9,7 +9,6 @@ import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -42,12 +41,8 @@ import kotlinx.coroutines.flow.onEach
 import uz.nurlibaydev.mytaxitesttask.BuildConfig
 import uz.nurlibaydev.mytaxitesttask.R
 import uz.nurlibaydev.mytaxitesttask.databinding.ScreenMainBinding
-import uz.nurlibaydev.mytaxitesttask.presetation.viewmodel.MainViewModel
-import uz.nurlibaydev.mytaxitesttask.presetation.viewmodel.impl.MainViewModelImpl
 import uz.nurlibaydev.mytaxitesttask.service.LocationService
 import uz.nurlibaydev.mytaxitesttask.utils.*
-import javax.inject.Inject
-
 
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
@@ -57,15 +52,12 @@ import javax.inject.Inject
 class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private val binding by viewBinding<ScreenMainBinding>()
-    private lateinit var mapView: MapView
+    private var mapView: MapView? = null
     private lateinit var mapboxMap: MapboxMap
-    private val viewModel: MainViewModel by viewModels<MainViewModelImpl>()
+    private val viewModel: MainViewModel by viewModels()
     private lateinit var symbolManager: SymbolManager
     private lateinit var currentLocation: LatLng
     private lateinit var icon: Symbol
-
-    @Inject
-    lateinit var service: LocationService
 
     private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
@@ -74,11 +66,13 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mapView = binding.mapView
-        mapView.onCreate(savedInstanceState)
-        mapView.getMapAsync(this)
-        binding.btnZoomIn.onClick { zoomInAction() }
-        binding.btnZoomOut.onClick { zoomOutAction() }
-        binding.btnMyLocation.onClick { navigateMyLocationAction() }
+        mapView?.onCreate(savedInstanceState)
+        mapView?.getMapAsync(this)
+        binding.apply {
+            binding.btnZoomIn.onClick { zoomInAction() }
+            binding.btnZoomOut.onClick { zoomOutAction() }
+            binding.btnMyLocation.onClick { navigateMyLocationAction() }
+        }
     }
 
     private fun zoomInAction() {
@@ -112,7 +106,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         val styleBuilderNight = Style.Builder().fromUri(MAP_BOX_DARK_MODE)
         val nightModeFlags = requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         mapboxMap.setStyle(
-            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) styleBuilderNight else styleBuilderLight
+            if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) styleBuilderNight else styleBuilderLight,
         ) { style ->
             mapboxMap.uiSettings.apply {
                 isCompassEnabled = false
@@ -122,11 +116,11 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             enableLocationComponent(style)
             val markerIcon = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_car, null)
             style.addImage(MARKER_ICON, BitmapUtils.getBitmapFromDrawable(markerIcon)!!)
-            symbolManager = SymbolManager(mapView, mapboxMap, style)
+            symbolManager = SymbolManager(mapView!!, mapboxMap, style)
             symbolManager.iconAllowOverlap = true
             symbolManager.iconIgnorePlacement = true
             icon = symbolManager.create(
-                SymbolOptions().withLatLng(TASHKENT).withIconImage(MARKER_ICON).withDraggable(false)
+                SymbolOptions().withLatLng(TASHKENT).withIconImage(MARKER_ICON).withDraggable(false),
             )
         }
     }
@@ -153,13 +147,15 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
             val camera = CameraUpdateFactory.newCameraPosition(
                 CameraPosition.Builder().target(LatLng(currentLocation.latitude, currentLocation.longitude)).bearing(location.bearing.toDouble())
-                    .build()
+                    .build(),
             )
             mapboxMap.let {
                 if (::icon.isInitialized) {
                     mapboxMap.animateCamera(camera)
                     val anim = ObjectAnimator.ofObject(
-                        latLngEvaluator, icon.latLng, LatLng(currentLocation.latitude, currentLocation.longitude)
+                        latLngEvaluator,
+                        icon.latLng,
+                        LatLng(currentLocation.latitude, currentLocation.longitude),
                     ).setDuration(2000L)
                     anim.addUpdateListener {
                         icon.latLng = it.animatedValue as LatLng
@@ -175,7 +171,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             GlobalObserver.isServiceRunning.observe(viewLifecycleOwner) { serviceActive ->
                 if (!serviceActive) {
-                    val intent = Intent(requireContext(), service::class.java)
+                    val intent = Intent(requireContext(), LocationService::class.java)
                     ContextCompat.startForegroundService(requireContext(), intent)
                 }
             }
@@ -190,7 +186,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun permissionDeniedSnackBar() {
         Snackbar.make(
-            binding.root, R.string.fine_permission_denied_explanation, BaseTransientBottomBar.LENGTH_LONG
+            binding.root,
+            R.string.fine_permission_denied_explanation,
+            BaseTransientBottomBar.LENGTH_LONG,
         ).setAction(R.string.settings) { launchSettings() }.setActionTextColor(getColorRes(R.color.white)).show()
     }
 
@@ -198,7 +196,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         val intent = Intent()
         intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
         val uri = Uri.fromParts(
-            "package", BuildConfig.APPLICATION_ID, null
+            "package",
+            BuildConfig.APPLICATION_ID,
+            null,
         )
         intent.data = uri
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -218,39 +218,42 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     override fun onStart() {
         super.onStart()
-        mapView.onStart()
+        mapView?.onStart()
     }
 
     override fun onResume() {
         super.onResume()
-        mapView.onResume()
-        if (isLocationEnabled()) locationRequest()
-        else showDialog()
+        mapView?.onResume()
+        if (isLocationEnabled()) {
+            locationRequest()
+        } else {
+            showDialog()
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        mapView.onPause()
+        mapView?.onPause()
     }
 
     override fun onStop() {
         super.onStop()
-        mapView.onStop()
+        mapView?.onStop()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState)
+        mapView?.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mapView.onDestroy()
+        mapView?.onDestroy()
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
-        mapView.onLowMemory()
+        mapView?.onLowMemory()
     }
 
     companion object {
