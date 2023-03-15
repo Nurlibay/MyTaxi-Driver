@@ -1,11 +1,10 @@
-package uz.nurlibaydev.mytaxitesttask.presetation.main
+package uz.nurlibaydev.mytaxitesttask.presetation.ui
 
 import android.Manifest
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.graphics.Color
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
@@ -13,7 +12,6 @@ import android.provider.Settings
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
@@ -43,12 +41,11 @@ import kotlinx.coroutines.flow.onEach
 import uz.nurlibaydev.mytaxitesttask.BuildConfig
 import uz.nurlibaydev.mytaxitesttask.R
 import uz.nurlibaydev.mytaxitesttask.databinding.ScreenMainBinding
+import uz.nurlibaydev.mytaxitesttask.presetation.viewmodel.MainViewModel
+import uz.nurlibaydev.mytaxitesttask.presetation.viewmodel.impl.MainViewModelImpl
 import uz.nurlibaydev.mytaxitesttask.service.LocationService
-import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
-import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
-import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
-import uz.nurlibaydev.mytaxitesttask.utils.latLngEvaluator
-
+import uz.nurlibaydev.mytaxitesttask.utils.*
+import javax.inject.Inject
 
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
@@ -65,6 +62,11 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private lateinit var currentLocation: LatLng
     private lateinit var icon: Symbol
 
+    private var isFirstOpen = true
+
+    @Inject
+    lateinit var service: LocationService
+
     private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
     }
@@ -74,151 +76,116 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
-        zoomInAction()
-        zoomOutAction()
-        navigateMyLocationAction()
+        binding.btnZoomIn.onClick { zoomInAction() }
+        binding.btnZoomOut.onClick { zoomOutAction() }
+        binding.btnMyLocation.onClick { navigateMyLocationAction() }
     }
 
     private fun startService() {
-        val intent by lazy { Intent(requireContext(), LocationService::class.java) }
-        ContextCompat.startForegroundService(requireContext(), intent)
+        service.isServiceRunning.observe(viewLifecycleOwner) {
+            if (!it) {
+                val intent = Intent(requireContext(), service::class.java)
+                ContextCompat.startForegroundService(requireContext(), intent)
+            }
+        }
     }
 
     private fun zoomInAction() {
-        binding.btnZoomIn.setOnClickListener {
-            val cameraPosition = mapboxMap.cameraPosition
-            val newCameraPosition = CameraPosition.Builder(cameraPosition)
-                .zoom(cameraPosition.zoom + 1.0)
-                .build()
-            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
-        }
+        val cameraPosition = mapboxMap.cameraPosition
+        val newCameraPosition = CameraPosition.Builder(cameraPosition).zoom(cameraPosition.zoom + 1.0).build()
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
     }
 
     private fun zoomOutAction() {
-        binding.btnZoomOut.setOnClickListener {
-            val cameraPosition = mapboxMap.cameraPosition
-            val newCameraPosition = CameraPosition.Builder(cameraPosition)
-                .zoom(cameraPosition.zoom - 1.0)
-                .build()
-            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
-        }
+        val cameraPosition = mapboxMap.cameraPosition
+        val newCameraPosition = CameraPosition.Builder(cameraPosition).zoom(cameraPosition.zoom - 1.0).build()
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
     }
 
     private fun navigateMyLocationAction() {
-        binding.btnMyLocation.setOnClickListener {
-            val locationComponent = mapboxMap.locationComponent
-            if (locationComponent.isLocationComponentActivated) {
-                val lastLocation: Location? = locationComponent.lastKnownLocation
-                lastLocation.let {
-                    val cameraPosition = CameraPosition.Builder()
-                        .target(LatLng(lastLocation))
-                        .zoom(15.0)
-                        .build()
-                    mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
-                }
+        val locationComponent = mapboxMap.locationComponent
+        if (locationComponent.isLocationComponentActivated) {
+            val lastLocation: Location? = locationComponent.lastKnownLocation
+            lastLocation.let {
+                val cameraPosition = CameraPosition.Builder().target(LatLng(lastLocation)).zoom(15.0).build()
+                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
             }
         }
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
-        observe()
+        viewModel.getLastLocation()
+        setupObserve()
         val styleBuilderLight = Style.Builder().fromUri(Style.MAPBOX_STREETS)
         val styleBuilderNight = Style.Builder().fromUri(MAP_BOX_DARK_MODE)
         val nightModeFlags = requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         mapboxMap.setStyle(
             if (nightModeFlags == Configuration.UI_MODE_NIGHT_YES) styleBuilderNight else styleBuilderLight
         ) { style ->
-            mapboxMap.uiSettings.isCompassEnabled = false
-            mapboxMap.uiSettings.isLogoEnabled = false
-            mapboxMap.uiSettings.isAttributionEnabled = false
-            mapboxMap.locationComponent.isLocationComponentActivated
+            mapboxMap.uiSettings.apply {
+                isCompassEnabled = false
+                isLogoEnabled = false
+                isAttributionEnabled = false
+            }
             enableLocationComponent(style)
-            val selectedMarkerIconDrawable = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_yellow_car, null)
-            style.addImage(MARKER_ICON, BitmapUtils.getBitmapFromDrawable(selectedMarkerIconDrawable)!!)
+            val markerIcon = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_car, null)
+            style.addImage(MARKER_ICON, BitmapUtils.getBitmapFromDrawable(markerIcon)!!)
             symbolManager = SymbolManager(mapView, mapboxMap, style)
             symbolManager.iconAllowOverlap = true
             symbolManager.iconIgnorePlacement = true
             icon = symbolManager.create(
-                SymbolOptions()
-                    .withLatLng(TASHKENT)
-                    .withIconImage(MARKER_ICON)
-                    .withDraggable(false)
+                SymbolOptions().withLatLng(TASHKENT).withIconImage(MARKER_ICON).withDraggable(false)
             )
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun enableLocationComponent(loadedMapStyle: Style) {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            val customLocationComponentOptions =
-                LocationComponentOptions.builder(requireContext())
-//                    .elevation(5f)
-//                    .pulseEnabled(true)
-//                    .pulseColor(Color.GREEN)
-//                    .pulseAlpha(.4f)
-//                    .accuracyAnimationEnabled(true)
-//                    .trackingGesturesManagement(true)
-//                    .accuracyAlpha(.6f)
-//                    .accuracyColor(ContextCompat.getColor(requireContext(), R.color.mapboxGreen))
-                    .build()
-
+            val customLocationComponentOptions = LocationComponentOptions.builder(requireContext()).build()
             val locationComponentActivationOptions =
                 LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
                     .build()
-
             mapboxMap.locationComponent.apply {
                 activateLocationComponent(locationComponentActivationOptions)
-                if (ActivityCompat.checkSelfPermission(
-                        requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    isLocationComponentEnabled = true
-                    cameraMode = CameraMode.TRACKING
-                    renderMode = RenderMode.COMPASS
-                }
+                isLocationComponentEnabled = true
+                cameraMode = CameraMode.TRACKING
+                renderMode = RenderMode.COMPASS
             }
         }
     }
 
-    private fun observe() {
-        viewModel.allUserLocations.onEach { locations ->
-            if (locations.isEmpty()) return@onEach
-            val lastItem = locations.last()
-            val lastLocation = LatLng(lastItem.lat, lastItem.lng)
-            currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
-
-            val camera = CameraUpdateFactory.newCameraPosition(
-                CameraPosition.Builder()
-                    .target(LatLng(currentLocation.latitude, currentLocation.longitude))
-                    .bearing(lastItem.bearing.toDouble())
-                    .build()
-            )
-            mapboxMap.animateCamera(camera)
-
-            val anim = ObjectAnimator.ofObject(
-                latLngEvaluator,
-                icon.latLng,
-                LatLng(currentLocation.latitude, currentLocation.longitude)
-            ).setDuration(2000L)
-            anim.addUpdateListener {
-                icon.latLng = it.animatedValue as LatLng
-                if (::icon.isInitialized) {
-                    icon.apply {
-                        symbolManager.update(this)
+    private fun setupObserve() {
+        viewModel.lastLocation.onEach { location ->
+                val lastLocation = LatLng(location.lat, location.lng)
+                currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
+                val camera = CameraUpdateFactory.newCameraPosition(
+                    CameraPosition.Builder().target(LatLng(currentLocation.latitude, currentLocation.longitude)).bearing(location.bearing.toDouble())
+                        .build()
+                )
+                mapboxMap.let {
+                    if (::icon.isInitialized) {
+                        mapboxMap.animateCamera(camera)
+                        val anim = ObjectAnimator.ofObject(
+                            latLngEvaluator, icon.latLng, LatLng(currentLocation.latitude, currentLocation.longitude)
+                        ).setDuration(2000L)
+                        anim.addUpdateListener {
+                            icon.latLng = it.animatedValue as LatLng
+                            symbolManager.update(icon)
+                        }
+                        anim.start()
                     }
                 }
-            }
-            anim.start()
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun locationRequest() {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             startService()
-            viewModel.getAllLocations()
-        } else requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
     }
 
     private fun permissionApprovedSnackBar() {
@@ -242,7 +209,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         startActivity(intent)
     }
 
-    private fun showAlert() {
+    private fun showDialog() {
         val dialog = AlertDialog.Builder(requireContext())
         dialog.setTitle(getString(R.string.enable_location)).setMessage(getString(R.string.enable_location_message))
             .setPositiveButton(getString(R.string.location_settings)) { _, _ ->
@@ -262,7 +229,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         super.onResume()
         mapView.onResume()
         if (isLocationEnabled()) locationRequest()
-        else showAlert()
+        else showDialog()
     }
 
     override fun onPause() {
@@ -291,7 +258,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     }
 
     companion object {
-        private val TASHKENT = LatLng(41.2995, 69.2401)
+        private val TASHKENT = LatLng(41.2937681, 69.2461707)
         private const val MAP_BOX_DARK_MODE = "mapbox://styles/mapbox/dark-v11"
         private const val MARKER_ICON = "MARKER_ICON"
     }

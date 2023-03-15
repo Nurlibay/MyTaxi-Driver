@@ -1,13 +1,13 @@
-package uz.nurlibaydev.mytaxitesttask.presetation.main
+package uz.nurlibaydev.mytaxitesttask.presetation.viewmodel
 
 import kotlinx.coroutines.flow.SharedFlow
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location
 
 interface MainViewModel {
 
-    val allUserLocations: SharedFlow<List<Location>>
+    val lastLocation: SharedFlow<Location>
 
     fun addLocation(location: Location)
 
-    fun getAllLocations()
+    fun getLastLocation()
 }

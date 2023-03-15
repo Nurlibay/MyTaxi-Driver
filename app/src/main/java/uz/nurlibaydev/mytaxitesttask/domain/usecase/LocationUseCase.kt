@@ -7,5 +7,5 @@ interface LocationUseCase {
 
     suspend fun addLocation(location: Location)
 
-    fun getAllLocations(): Flow<List<Location>>
+    fun getLastLocation(): Flow<Location>
 }

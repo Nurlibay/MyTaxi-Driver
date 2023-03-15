@@ -7,7 +7,9 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.MutableLiveData
 import com.mapbox.android.core.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +31,9 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class LocationService : Service() {
+class LocationService @Inject constructor() : Service() {
+
+    var isServiceRunning = MutableLiveData(false)
 
     @Inject
     lateinit var locationDao: LocationDao
@@ -50,6 +54,7 @@ class LocationService : Service() {
         locationEngine = LocationEngineProvider.getBestLocationEngine(this)
 
         val resultIntent = Intent(this, MainActivity::class.java)
+        resultIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val stackBuilder = TaskStackBuilder.create(this)
         stackBuilder.addParentStack(MainActivity::class.java)
         stackBuilder.addNextIntent(resultIntent)
@@ -68,6 +73,7 @@ class LocationService : Service() {
 
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        isServiceRunning.postValue(true)
         callback = object : LocationEngineCallback<LocationEngineResult> {
             override fun onSuccess(result: LocationEngineResult?) {
                 result?.lastLocation ?: return
