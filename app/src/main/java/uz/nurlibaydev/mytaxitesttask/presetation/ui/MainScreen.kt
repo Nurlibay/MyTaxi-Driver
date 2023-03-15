@@ -9,6 +9,7 @@ import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -47,6 +48,7 @@ import uz.nurlibaydev.mytaxitesttask.service.LocationService
 import uz.nurlibaydev.mytaxitesttask.utils.*
 import javax.inject.Inject
 
+
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
  */
@@ -61,8 +63,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private lateinit var symbolManager: SymbolManager
     private lateinit var currentLocation: LatLng
     private lateinit var icon: Symbol
-
-    private var isFirstOpen = true
 
     @Inject
     lateinit var service: LocationService
@@ -79,15 +79,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         binding.btnZoomIn.onClick { zoomInAction() }
         binding.btnZoomOut.onClick { zoomOutAction() }
         binding.btnMyLocation.onClick { navigateMyLocationAction() }
-    }
-
-    private fun startService() {
-        service.isServiceRunning.observe(viewLifecycleOwner) {
-            if (!it) {
-                val intent = Intent(requireContext(), service::class.java)
-                ContextCompat.startForegroundService(requireContext(), intent)
-            }
-        }
     }
 
     private fun zoomInAction() {
@@ -158,31 +149,36 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun setupObserve() {
         viewModel.lastLocation.onEach { location ->
-                val lastLocation = LatLng(location.lat, location.lng)
-                currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
-                val camera = CameraUpdateFactory.newCameraPosition(
-                    CameraPosition.Builder().target(LatLng(currentLocation.latitude, currentLocation.longitude)).bearing(location.bearing.toDouble())
-                        .build()
-                )
-                mapboxMap.let {
-                    if (::icon.isInitialized) {
-                        mapboxMap.animateCamera(camera)
-                        val anim = ObjectAnimator.ofObject(
-                            latLngEvaluator, icon.latLng, LatLng(currentLocation.latitude, currentLocation.longitude)
-                        ).setDuration(2000L)
-                        anim.addUpdateListener {
-                            icon.latLng = it.animatedValue as LatLng
-                            symbolManager.update(icon)
-                        }
-                        anim.start()
+            val lastLocation = LatLng(location.lat, location.lng)
+            currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
+            val camera = CameraUpdateFactory.newCameraPosition(
+                CameraPosition.Builder().target(LatLng(currentLocation.latitude, currentLocation.longitude)).bearing(location.bearing.toDouble())
+                    .build()
+            )
+            mapboxMap.let {
+                if (::icon.isInitialized) {
+                    mapboxMap.animateCamera(camera)
+                    val anim = ObjectAnimator.ofObject(
+                        latLngEvaluator, icon.latLng, LatLng(currentLocation.latitude, currentLocation.longitude)
+                    ).setDuration(2000L)
+                    anim.addUpdateListener {
+                        icon.latLng = it.animatedValue as LatLng
+                        symbolManager.update(icon)
                     }
+                    anim.start()
                 }
+            }
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun locationRequest() {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            startService()
+            GlobalObserver.isServiceRunning.observe(viewLifecycleOwner) { serviceActive ->
+                if (!serviceActive) {
+                    val intent = Intent(requireContext(), service::class.java)
+                    ContextCompat.startForegroundService(requireContext(), intent)
+                }
+            }
         } else {
             requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }

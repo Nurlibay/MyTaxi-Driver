@@ -27,6 +27,7 @@ import uz.nurlibaydev.mytaxitesttask.utils.Constants.DEFAULT_INTERVAL_IN_MILLISE
 import uz.nurlibaydev.mytaxitesttask.utils.Constants.DEFAULT_MAX_WAIT_TIME
 import uz.nurlibaydev.mytaxitesttask.utils.Constants.NOTIFICATION_ID
 import uz.nurlibaydev.mytaxitesttask.utils.Constants.TAG
+import uz.nurlibaydev.mytaxitesttask.utils.GlobalObserver
 import java.util.*
 import javax.inject.Inject
 
@@ -73,7 +74,7 @@ class LocationService @Inject constructor() : Service() {
 
     @SuppressLint("MissingPermission")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        isServiceRunning.postValue(true)
+        GlobalObserver.isServiceRunning.postValue(true)
         callback = object : LocationEngineCallback<LocationEngineResult> {
             override fun onSuccess(result: LocationEngineResult?) {
                 result?.lastLocation ?: return
