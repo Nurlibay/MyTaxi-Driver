@@ -8,15 +8,12 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.LocationManager
-import android.view.View
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-
-inline fun <T : View> T.onClick(crossinline func: T.() -> Unit) = setOnClickListener { func() }
 
 fun Fragment.isLocationEnabled(): Boolean {
     val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager

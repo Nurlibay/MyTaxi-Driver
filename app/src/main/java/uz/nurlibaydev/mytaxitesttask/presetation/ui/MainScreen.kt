@@ -49,7 +49,6 @@ import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
 import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
 import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
 import uz.nurlibaydev.mytaxitesttask.utils.latLngEvaluator
-import uz.nurlibaydev.mytaxitesttask.utils.onClick
 import uz.nurlibaydev.mytaxitesttask.utils.showMessage
 
 /**
@@ -79,9 +78,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
         binding.apply {
-            btnZoomIn.onClick { zoomInAction() }
-            btnZoomOut.onClick { zoomOutAction() }
-            btnMyLocation.onClick { navigateMyLocationAction() }
+            btnZoomIn.setOnClickListener { zoomInAction() }
+            btnZoomOut.setOnClickListener { zoomOutAction() }
+            btnMyLocation.setOnClickListener { navigateMyLocationAction() }
         }
         checkNetworkConnection()
     }
