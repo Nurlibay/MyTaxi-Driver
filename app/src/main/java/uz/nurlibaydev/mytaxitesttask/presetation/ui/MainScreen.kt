@@ -49,7 +49,7 @@ import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
 import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
 import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
 import uz.nurlibaydev.mytaxitesttask.utils.latLngEvaluator
-import uz.nurlibaydev.mytaxitesttask.utils.showMessage
+import uz.nurlibaydev.mytaxitesttask.utils.showSnakeBar
 
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
@@ -69,7 +69,11 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private val requestPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { isGranted ->
-        if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
+        if (isGranted) {
+            showSnakeBar(binding.root, R.string.permission_approved_explanation)
+        } else {
+            permissionDeniedSnackBar()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -192,10 +196,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         }
     }
 
-    private fun permissionApprovedSnackBar() {
-        Snackbar.make(binding.root, R.string.permission_approved_explanation, BaseTransientBottomBar.LENGTH_LONG).show()
-    }
-
     private fun permissionDeniedSnackBar() {
         Snackbar.make(
             binding.root,
@@ -271,9 +271,8 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private fun checkNetworkConnection() {
         val connectivityLiveData = ConnectivityLiveData(requireActivity().application)
         connectivityLiveData.observe(viewLifecycleOwner) { isAvailable ->
-            when (isAvailable) {
-                false -> showMessage("No internet connection")
-                else -> {}
+            if (!isAvailable) {
+                showSnakeBar(binding.root, R.string.no_internet)
             }
         }
     }
