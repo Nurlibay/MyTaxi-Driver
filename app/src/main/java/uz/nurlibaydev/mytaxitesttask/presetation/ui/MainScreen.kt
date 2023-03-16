@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
-import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -56,6 +55,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private lateinit var symbolManager: SymbolManager
     private lateinit var currentLocation: LatLng
     private lateinit var icon: Symbol
+    private var isFirstRun = true
 
     private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
@@ -86,14 +86,8 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     }
 
     private fun navigateMyLocationAction() {
-        val locationComponent = mapboxMap.locationComponent
-        if (locationComponent.isLocationComponentActivated) {
-            val lastLocation: Location? = locationComponent.lastKnownLocation
-            lastLocation.let {
-                val cameraPosition = CameraPosition.Builder().target(LatLng(lastLocation)).zoom(15.0).build()
-                mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
-            }
-        }
+        val cameraPosition = CameraPosition.Builder().target(currentLocation).zoom(15.0).build()
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -167,14 +161,20 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun locationRequest() {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            startService()
+        } else {
+            requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+    private fun startService() {
+        if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             GlobalObserver.isServiceRunning.observe(viewLifecycleOwner) { serviceActive ->
                 if (!serviceActive) {
                     val intent = Intent(requireContext(), LocationService::class.java)
                     ContextCompat.startForegroundService(requireContext(), intent)
                 }
             }
-        } else {
-            requestPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 
