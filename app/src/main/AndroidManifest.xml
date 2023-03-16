@@ -2,13 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
-        tools:replace="android:name"/>
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        tools:replace="android:name" />
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".app.App"
@@ -33,10 +35,10 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.LocationService"
+        <service
+            android:name=".service.LocationService"
             android:enabled="true"
-            android:foregroundServiceType="location"
-            />
+            android:foregroundServiceType="location" />
         <meta-data
             android:name="com.mapbox.mapboxsdk.notification_channel_id"
             android:value="my_channel_id" />

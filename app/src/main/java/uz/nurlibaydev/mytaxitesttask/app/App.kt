@@ -20,7 +20,7 @@ class App : Application() {
             Timber.plant(Timber.DebugTree())
         }
         /**
-         * This way not worked
+         * This way didn't work
          Mapbox.getInstance(this, BuildConfig.MapboxAccessToken)
          */
     }

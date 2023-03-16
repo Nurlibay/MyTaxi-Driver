@@ -53,9 +53,8 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private lateinit var mapboxMap: MapboxMap
     private val viewModel: MainViewModel by viewModels()
     private lateinit var symbolManager: SymbolManager
-    private lateinit var currentLocation: LatLng
+    private var currentLocation: LatLng? = null
     private lateinit var icon: Symbol
-    private var isFirstRun = true
 
     private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
@@ -93,7 +92,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onMapReady(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
         viewModel.getLastLocation()
-        setupObserve()
+        setupObserver()
         val styleBuilderLight = Style.Builder().fromUri(Style.MAPBOX_STREETS)
         val styleBuilderNight = Style.Builder().fromUri(MAP_BOX_DARK_MODE)
         val nightModeFlags = requireContext().resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
@@ -111,10 +110,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             symbolManager.iconAllowOverlap = true
             symbolManager.iconIgnorePlacement = true
             icon = symbolManager.create(
-                SymbolOptions()
-                    .withLatLng(TASHKENT)
-                    .withIconImage(MARKER_ICON)
-                    .withDraggable(false),
+                SymbolOptions().withLatLng(TASHKENT).withIconImage(MARKER_ICON).withDraggable(false),
             )
         }
     }
@@ -123,9 +119,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private fun enableLocationComponent(loadedMapStyle: Style) {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             val customLocationComponentOptions = LocationComponentOptions.builder(requireContext()).build()
-            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle)
-                .locationComponentOptions(customLocationComponentOptions)
-                .build()
+            val locationComponentActivationOptions =
+                LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
+                    .build()
             mapboxMap.locationComponent.apply {
                 activateLocationComponent(locationComponentActivationOptions)
                 isLocationComponentEnabled = true
@@ -135,17 +131,14 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         }
     }
 
-    private fun setupObserve() {
+    private fun setupObserver() {
         viewModel.lastLocation.onEach { location ->
             val lat = location.lat
             val lng = location.lng
             val bearing = location.bearing.toDouble()
             currentLocation = LatLng(lat, lng)
             val camera = CameraUpdateFactory.newCameraPosition(
-                CameraPosition.Builder()
-                    .target(currentLocation)
-                    .bearing(bearing)
-                    .build(),
+                CameraPosition.Builder().target(currentLocation).bearing(bearing).build(),
             )
             if (::icon.isInitialized) {
                 mapboxMap.animateCamera(camera)
@@ -222,6 +215,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         mapView?.onResume()
+        checkNetworkConnection()
         if (isLocationEnabled()) {
             locationRequest()
         } else {
@@ -252,6 +246,16 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onLowMemory() {
         super.onLowMemory()
         mapView?.onLowMemory()
+    }
+
+    private fun checkNetworkConnection() {
+        val connectivityLiveData = ConnectivityLiveData(requireActivity().application)
+        connectivityLiveData.observe(viewLifecycleOwner) { isAvailable ->
+            when (isAvailable) {
+                false -> showMessage("No internet connection")
+                else -> {}
+            }
+        }
     }
 
     companion object {
