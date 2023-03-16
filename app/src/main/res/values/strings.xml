@@ -16,4 +16,5 @@
     <string name="enable_location_message">GPS disabled.\nPlease enable geolocation</string>
     <string name="location_settings">Turn on</string>
     <string name="cancel">Cancel</string>
+    <string name="content_description">Content Description</string>
 </resources>
