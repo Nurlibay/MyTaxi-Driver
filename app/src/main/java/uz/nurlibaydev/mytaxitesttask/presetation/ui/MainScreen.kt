@@ -79,9 +79,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
         binding.apply {
-            binding.btnZoomIn.onClick { zoomInAction() }
-            binding.btnZoomOut.onClick { zoomOutAction() }
-            binding.btnMyLocation.onClick { navigateMyLocationAction() }
+            btnZoomIn.onClick { zoomInAction() }
+            btnZoomOut.onClick { zoomOutAction() }
+            btnMyLocation.onClick { navigateMyLocationAction() }
         }
         checkNetworkConnection()
     }
