@@ -38,7 +38,8 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class LocationService @Inject constructor() : Service() {
 
-    @Inject lateinit var repository: LocationRepository
+    @Inject
+    lateinit var repository: LocationRepository
     private val locationEngine: LocationEngine by lazy { LocationEngineProvider.getBestLocationEngine(this) }
 
     private val job = SupervisorJob()

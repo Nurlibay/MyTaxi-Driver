@@ -70,6 +70,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             binding.btnZoomOut.onClick { zoomOutAction() }
             binding.btnMyLocation.onClick { navigateMyLocationAction() }
         }
+        checkNetworkConnection()
     }
 
     private fun zoomInAction() {
@@ -215,7 +216,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         mapView?.onResume()
-        checkNetworkConnection()
         if (isLocationEnabled()) {
             locationRequest()
         } else {
@@ -250,7 +250,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun checkNetworkConnection() {
         val connectivityLiveData = ConnectivityLiveData(requireActivity().application)
-        connectivityLiveData.observe(this) { isAvailable ->
+        connectivityLiveData.observe(viewLifecycleOwner) { isAvailable ->
             when (isAvailable) {
                 false -> showMessage("No internet connection")
                 else -> {}
