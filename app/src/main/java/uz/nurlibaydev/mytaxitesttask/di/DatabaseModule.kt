@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uz.nurlibaydev.mytaxitesttask.data.dao.LocationDao
 import uz.nurlibaydev.mytaxitesttask.data.database.LocalDatabase
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.LOCAL_DB_NAME
 import javax.inject.Singleton
 
 /**
@@ -19,17 +20,19 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    @[Provides Singleton]
+    @Provides
+    @Singleton
     fun provideDatabase(@ApplicationContext context: Context): LocalDatabase {
         return Room.databaseBuilder(
             context,
             LocalDatabase::class.java,
-            "location_data.db",
+            LOCAL_DB_NAME,
         )
             .build()
     }
 
-    @[Provides Singleton]
+    @Provides
+    @Singleton
     fun provideLocationDao(localDatabase: LocalDatabase): LocationDao {
         return localDatabase.getLocationDao()
     }

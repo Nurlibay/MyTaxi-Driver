@@ -20,7 +20,8 @@ inline fun <T : View> T.onClick(crossinline func: T.() -> Unit) = setOnClickList
 
 fun Fragment.isLocationEnabled(): Boolean {
     val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+        locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
 }
 
 fun Fragment.showMessage(text: String, duration: Int = Toast.LENGTH_LONG) {

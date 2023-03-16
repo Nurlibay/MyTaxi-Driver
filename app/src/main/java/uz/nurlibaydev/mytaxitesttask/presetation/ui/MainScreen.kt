@@ -39,7 +39,18 @@ import uz.nurlibaydev.mytaxitesttask.BuildConfig
 import uz.nurlibaydev.mytaxitesttask.R
 import uz.nurlibaydev.mytaxitesttask.databinding.ScreenMainBinding
 import uz.nurlibaydev.mytaxitesttask.service.LocationService
-import uz.nurlibaydev.mytaxitesttask.utils.*
+import uz.nurlibaydev.mytaxitesttask.utils.ConnectivityLiveData
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.ANIMATE_CAMERA_DURATION
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.CAMERA_ZOOM
+import uz.nurlibaydev.mytaxitesttask.utils.Constants.VALUE_ANIMATOR_DURATION
+import uz.nurlibaydev.mytaxitesttask.utils.GlobalObserver
+import uz.nurlibaydev.mytaxitesttask.utils.bitmapFromDrawableRes
+import uz.nurlibaydev.mytaxitesttask.utils.getColorRes
+import uz.nurlibaydev.mytaxitesttask.utils.hasPermission
+import uz.nurlibaydev.mytaxitesttask.utils.isLocationEnabled
+import uz.nurlibaydev.mytaxitesttask.utils.latLngEvaluator
+import uz.nurlibaydev.mytaxitesttask.utils.onClick
+import uz.nurlibaydev.mytaxitesttask.utils.showMessage
 
 /**
  *  Created by Nurlibay Koshkinbaev on 08/03/2023 17:07
@@ -56,7 +67,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private var currentLocation: LatLng? = null
     private lateinit var icon: Symbol
 
-    private val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+    private val requestPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { isGranted ->
         if (isGranted) permissionApprovedSnackBar() else permissionDeniedSnackBar()
     }
 
@@ -76,18 +89,18 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private fun zoomInAction() {
         val cameraPosition = mapboxMap.cameraPosition
         val newCameraPosition = CameraPosition.Builder(cameraPosition).zoom(cameraPosition.zoom + 1.0).build()
-        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), ANIMATE_CAMERA_DURATION)
     }
 
     private fun zoomOutAction() {
         val cameraPosition = mapboxMap.cameraPosition
         val newCameraPosition = CameraPosition.Builder(cameraPosition).zoom(cameraPosition.zoom - 1.0).build()
-        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), 1000)
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(newCameraPosition), ANIMATE_CAMERA_DURATION)
     }
 
     private fun navigateMyLocationAction() {
-        val cameraPosition = CameraPosition.Builder().target(currentLocation).zoom(15.0).build()
-        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000)
+        val cameraPosition = CameraPosition.Builder().target(currentLocation).zoom(CAMERA_ZOOM).build()
+        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), ANIMATE_CAMERA_DURATION)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -121,7 +134,10 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             val customLocationComponentOptions = LocationComponentOptions.builder(requireContext()).build()
             val locationComponentActivationOptions =
-                LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
+                LocationComponentActivationOptions.builder(
+                    requireContext(),
+                    loadedMapStyle,
+                ).locationComponentOptions(customLocationComponentOptions)
                     .build()
             mapboxMap.locationComponent.apply {
                 activateLocationComponent(locationComponentActivationOptions)
@@ -143,7 +159,12 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
             )
             if (::icon.isInitialized) {
                 mapboxMap.animateCamera(camera)
-                val objectAnimator = ObjectAnimator.ofObject(latLngEvaluator, icon.latLng, currentLocation).setDuration(2000L)
+                val objectAnimator = ObjectAnimator.ofObject(
+                    latLngEvaluator,
+                    icon.latLng,
+                    currentLocation,
+                )
+                    .setDuration(VALUE_ANIMATOR_DURATION)
                 objectAnimator.addUpdateListener {
                     icon.latLng = it.animatedValue as LatLng
                     symbolManager.update(icon)
