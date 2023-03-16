@@ -41,6 +41,7 @@ class LocationService @Inject constructor() : Service() {
     @Inject
     lateinit var repository: LocationRepository
     private val locationEngine: LocationEngine by lazy { LocationEngineProvider.getBestLocationEngine(this) }
+    private var currentTime: Date? = null
 
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
@@ -52,7 +53,7 @@ class LocationService @Inject constructor() : Service() {
             val lng = lastLocation.longitude
             val bearing = lastLocation.bearing
             scope.launch(Dispatchers.IO) {
-                val currentTime: Date = Calendar.getInstance().time
+                currentTime = Calendar.getInstance().time
                 repository.addLocation(Location(0, lat, lng, currentTime.toString(), bearing))
                 val updatedNotification = builder.setContentText("Coordinates: ($lat, $lng)")
                 notificationManager.notify(NOTIFICATION_ID, updatedNotification.build())
