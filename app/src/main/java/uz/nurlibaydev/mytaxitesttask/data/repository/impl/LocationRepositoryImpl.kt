@@ -1,8 +1,9 @@
-package uz.nurlibaydev.mytaxitesttask.domain.repository
+package uz.nurlibaydev.mytaxitesttask.data.repository.impl
 
 import kotlinx.coroutines.flow.Flow
 import uz.nurlibaydev.mytaxitesttask.data.dao.LocationDao
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location
+import uz.nurlibaydev.mytaxitesttask.data.repository.LocationRepository
 import javax.inject.Inject
 
 class LocationRepositoryImpl @Inject constructor(

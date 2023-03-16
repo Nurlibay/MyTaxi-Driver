@@ -1,9 +1,10 @@
-package uz.nurlibaydev.mytaxitesttask.domain.usecase
+package uz.nurlibaydev.mytaxitesttask.domain.usecase.impl
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location
-import uz.nurlibaydev.mytaxitesttask.domain.repository.LocationRepository
+import uz.nurlibaydev.mytaxitesttask.data.repository.LocationRepository
+import uz.nurlibaydev.mytaxitesttask.domain.usecase.LocationUseCase
 import javax.inject.Inject
 
 class LocationUseCaseImpl @Inject constructor(

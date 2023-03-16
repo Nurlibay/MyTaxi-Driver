@@ -1,4 +1,4 @@
-package uz.nurlibaydev.mytaxitesttask.domain.repository
+package uz.nurlibaydev.mytaxitesttask.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location

@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import uz.nurlibaydev.mytaxitesttask.R
 import uz.nurlibaydev.mytaxitesttask.data.entity.Location
-import uz.nurlibaydev.mytaxitesttask.domain.repository.LocationRepository
+import uz.nurlibaydev.mytaxitesttask.data.repository.LocationRepository
 import uz.nurlibaydev.mytaxitesttask.presetation.MainActivity
 import uz.nurlibaydev.mytaxitesttask.utils.Constants.CHANNEL_ID
 import uz.nurlibaydev.mytaxitesttask.utils.Constants.CHANNEL_NAME

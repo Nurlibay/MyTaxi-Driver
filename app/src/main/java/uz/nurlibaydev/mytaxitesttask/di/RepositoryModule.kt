@@ -4,8 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uz.nurlibaydev.mytaxitesttask.domain.repository.LocationRepository
-import uz.nurlibaydev.mytaxitesttask.domain.repository.LocationRepositoryImpl
+import uz.nurlibaydev.mytaxitesttask.data.repository.LocationRepository
+import uz.nurlibaydev.mytaxitesttask.data.repository.impl.LocationRepositoryImpl
 
 @Module
 @InstallIn(SingletonComponent::class)
