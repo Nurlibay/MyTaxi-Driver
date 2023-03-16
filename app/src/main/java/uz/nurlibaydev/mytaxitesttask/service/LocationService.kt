@@ -10,6 +10,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.TaskStackBuilder
 import com.mapbox.android.core.location.*
@@ -69,6 +70,7 @@ class LocationService @Inject constructor() : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -114,6 +116,7 @@ class LocationService @Inject constructor() : Service() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun createPendingIntent(intent: Intent): PendingIntent? {
         return TaskStackBuilder.create(this).run {
             addNextIntentWithParentStack(intent)
