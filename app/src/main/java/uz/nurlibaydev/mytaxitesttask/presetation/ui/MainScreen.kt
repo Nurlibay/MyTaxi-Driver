@@ -250,7 +250,7 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun checkNetworkConnection() {
         val connectivityLiveData = ConnectivityLiveData(requireActivity().application)
-        connectivityLiveData.observe(viewLifecycleOwner) { isAvailable ->
+        connectivityLiveData.observe(this) { isAvailable ->
             when (isAvailable) {
                 false -> showMessage("No internet connection")
                 else -> {}

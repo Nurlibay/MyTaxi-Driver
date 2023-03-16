@@ -23,7 +23,7 @@ fun Fragment.isLocationEnabled(): Boolean {
     return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
 }
 
-fun Fragment.showMessage(text: String, duration: Int = Toast.LENGTH_SHORT) {
+fun Fragment.showMessage(text: String, duration: Int = Toast.LENGTH_LONG) {
     Toast.makeText(requireContext(), text, duration).show()
 }
 
