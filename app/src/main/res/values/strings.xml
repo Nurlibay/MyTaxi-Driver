@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyTaxi</string>
+    <string name="app_name">MyTaxi Driver</string>
     <string name="mapbox_access_token">sk.eyJ1IjoibnVybGliYXkiLCJhIjoiY2xlenRucHJlMDJsNTN4cHBzeDR4dzl5cCJ9.u10bkqv7rs5NlyfgE8N-jg</string>
     <string name="free">Свободен</string>
     <string name="busy">Занят</string>

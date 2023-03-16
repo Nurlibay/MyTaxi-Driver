@@ -19,5 +19,9 @@ class App : Application() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+        /**
+         * This way not worked
+         Mapbox.getInstance(this, BuildConfig.MapboxAccessToken)
+         */
     }
 }

@@ -23,9 +23,13 @@ android {
     }
 
     buildTypes {
+        debug {
+//            buildConfigField 'String', "MapboxAccessToken", "sk.eyJ1IjoibnVybGliYXkiLCJhIjoiY2xlenRucHJlMDJsNTN4cHBzeDR4dzl5cCJ9.u10bkqv7rs5NlyfgE8N-jg"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+//            buildConfigField 'String', "MapboxAccessToken", "sk.eyJ1IjoibnVybGliYXkiLCJhIjoiY2xlenRucHJlMDJsNTN4cHBzeDR4dzl5cCJ9.u10bkqv7rs5NlyfgE8N-jg"
         }
     }
     compileOptions {
