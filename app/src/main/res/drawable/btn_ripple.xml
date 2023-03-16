@@ -3,8 +3,8 @@
     android:color="@color/ripple_effect_color">
     <item>
         <shape android:shape="oval">
-            <solid android:color="@color/white"/>
-            <corners android:radius="20dp"/>
+            <solid android:color="@color/white" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
 </ripple>

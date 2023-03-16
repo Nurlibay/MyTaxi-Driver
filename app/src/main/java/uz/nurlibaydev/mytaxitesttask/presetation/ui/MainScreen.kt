@@ -228,6 +228,15 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
         dialog.show()
     }
 
+    private fun checkNetworkConnection() {
+        val connectivityLiveData = ConnectivityLiveData(requireActivity().application)
+        connectivityLiveData.observe(viewLifecycleOwner) { isAvailable ->
+            if (!isAvailable) {
+                showSnakeBar(binding.root, R.string.no_internet)
+            }
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         mapView?.onStart()
@@ -266,15 +275,6 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     override fun onLowMemory() {
         super.onLowMemory()
         mapView?.onLowMemory()
-    }
-
-    private fun checkNetworkConnection() {
-        val connectivityLiveData = ConnectivityLiveData(requireActivity().application)
-        connectivityLiveData.observe(viewLifecycleOwner) { isAvailable ->
-            if (!isAvailable) {
-                showSnakeBar(binding.root, R.string.no_internet)
-            }
-        }
     }
 
     companion object {
