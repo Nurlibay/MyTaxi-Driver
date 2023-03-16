@@ -13,7 +13,6 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -34,7 +33,6 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions
-import com.mapbox.mapboxsdk.utils.BitmapUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -114,13 +112,15 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
                 isAttributionEnabled = false
             }
             enableLocationComponent(style)
-            val markerIcon = ResourcesCompat.getDrawable(this.resources, R.drawable.ic_car, null)
-            style.addImage(MARKER_ICON, BitmapUtils.getBitmapFromDrawable(markerIcon)!!)
+            bitmapFromDrawableRes(R.drawable.ic_car)?.let { style.addImage(MARKER_ICON, it) }
             symbolManager = SymbolManager(mapView!!, mapboxMap, style)
             symbolManager.iconAllowOverlap = true
             symbolManager.iconIgnorePlacement = true
             icon = symbolManager.create(
-                SymbolOptions().withLatLng(TASHKENT).withIconImage(MARKER_ICON).withDraggable(false),
+                SymbolOptions()
+                    .withLatLng(TASHKENT)
+                    .withIconImage(MARKER_ICON)
+                    .withDraggable(false),
             )
         }
     }
@@ -129,9 +129,9 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
     private fun enableLocationComponent(loadedMapStyle: Style) {
         if (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
             val customLocationComponentOptions = LocationComponentOptions.builder(requireContext()).build()
-            val locationComponentActivationOptions =
-                LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle).locationComponentOptions(customLocationComponentOptions)
-                    .build()
+            val locationComponentActivationOptions = LocationComponentActivationOptions.builder(requireContext(), loadedMapStyle)
+                .locationComponentOptions(customLocationComponentOptions)
+                .build()
             mapboxMap.locationComponent.apply {
                 activateLocationComponent(locationComponentActivationOptions)
                 isLocationComponentEnabled = true
@@ -143,26 +143,24 @@ class MainScreen : Fragment(R.layout.screen_main), OnMapReadyCallback {
 
     private fun setupObserve() {
         viewModel.lastLocation.onEach { location ->
-            val lastLocation = LatLng(location.lat, location.lng)
-            currentLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
+            val lat = location.lat
+            val lng = location.lng
+            val bearing = location.bearing.toDouble()
+            currentLocation = LatLng(lat, lng)
             val camera = CameraUpdateFactory.newCameraPosition(
-                CameraPosition.Builder().target(LatLng(currentLocation.latitude, currentLocation.longitude)).bearing(location.bearing.toDouble())
+                CameraPosition.Builder()
+                    .target(currentLocation)
+                    .bearing(bearing)
                     .build(),
             )
-            mapboxMap.let {
-                if (::icon.isInitialized) {
-                    mapboxMap.animateCamera(camera)
-                    val anim = ObjectAnimator.ofObject(
-                        latLngEvaluator,
-                        icon.latLng,
-                        LatLng(currentLocation.latitude, currentLocation.longitude),
-                    ).setDuration(2000L)
-                    anim.addUpdateListener {
-                        icon.latLng = it.animatedValue as LatLng
-                        symbolManager.update(icon)
-                    }
-                    anim.start()
+            if (::icon.isInitialized) {
+                mapboxMap.animateCamera(camera)
+                val objectAnimator = ObjectAnimator.ofObject(latLngEvaluator, icon.latLng, currentLocation).setDuration(2000L)
+                objectAnimator.addUpdateListener {
+                    icon.latLng = it.animatedValue as LatLng
+                    symbolManager.update(icon)
                 }
+                objectAnimator.start()
             }
         }.launchIn(viewLifecycleOwner.lifecycleScope)
     }

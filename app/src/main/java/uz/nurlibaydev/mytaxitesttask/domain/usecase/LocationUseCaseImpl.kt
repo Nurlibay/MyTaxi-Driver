@@ -9,9 +9,6 @@ import javax.inject.Inject
 class LocationUseCaseImpl @Inject constructor(
     private val repository: LocationRepository,
 ) : LocationUseCase {
-    override suspend fun addLocation(location: Location) {
-        repository.addLocation(location)
-    }
 
     override fun getLastLocation(): Flow<Location> = flow {
         repository.getAllLocations().collect {

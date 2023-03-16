@@ -18,12 +18,6 @@ class MainViewModel @Inject constructor(
 
     val lastLocation = MutableSharedFlow<Location>()
 
-    fun addLocation(location: Location) {
-        viewModelScope.launch(Dispatchers.IO) {
-            useCase.addLocation(location)
-        }
-    }
-
     fun getLastLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             useCase.getLastLocation().collectLatest {
